@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -29,5 +30,14 @@ public class ItemController {
     @ResponseStatus(HttpStatus.OK)
     Item create(@RequestBody Item item) {
         return itemService.create(item);
+    }
+
+    @GetMapping("/list/{id}")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    @JsonView(Views.Private.class)
+    List<Item> getAllByParentId(@PathVariable("id") Integer id) {
+        List<Item> resultList = itemService.getAllById(id);
+        return  resultList == null ? new ArrayList<>() : resultList;
     }
 }

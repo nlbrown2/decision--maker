@@ -1,10 +1,7 @@
 package com.example.decisionmaker.entity;
 
 import com.example.decisionmaker.Views;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonView;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.*;
 
 import javax.persistence.*;
 
@@ -15,7 +12,7 @@ public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    @JsonView(Views.Private.class)
+    @JsonView(Views.Public.class)
     private Integer id;
 
     @JsonView(Views.Public.class)
@@ -32,7 +29,7 @@ public class Item {
     @JoinColumn(name = "group_id", referencedColumnName = "id")
     private Group group;
 
-    @JsonView(Views.Public.class)
+    @JsonIgnore
     @JoinColumn(name="parent", referencedColumnName="id", insertable = false, updatable = false)
     @ManyToOne(fetch=FetchType.LAZY, cascade=CascadeType.ALL)
     private Item parent;
