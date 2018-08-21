@@ -4,24 +4,30 @@ import { getGroupList, addListItem } from './services/requestService.jsx';
 import {List, ListItem} from 'material-ui/List';
 import TextField from 'material-ui/TextField';
 import Forward from 'material-ui/svg-icons/content/forward';
+import RCircle from 'material-ui/svg-icons/content/remove-circle';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faClipboard } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faClipboard } from '@fortawesome/free-solid-svg-icons';
+import PressableIcon from './UI/PressableIcon.jsx';
+
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       items: [],
       header: 'Please make your first selection',
-      textInputValue: ''
+      textInputValue: '',
+      prevTitles: ['Please make your first selection'],
+      oldItems: []
     };
     getGroupList().then(this.onNewItems);
   }
 
   onClick = async () => {
     if(this.state.textInputValue.trim() === '') return;
-    await addListItem(this.state.textInputValue, this.state.oldId);
-    getGroupList(this.state.oldId).then(this.onNewItems);
+    let parentId = this.state.oldIds ? this.state.oldIds[this.state.oldIds.length - 1] : null;
+    await addListItem(this.state.textInputValue, parentId);
+    getGroupList(parentId).then(this.onNewItems);
     this.setState({ textInputValue: '' });
   }
 
@@ -35,13 +41,38 @@ class App extends Component {
 
   itemChosen = async (id, index) => {
     let newList = await getGroupList(id);
-    newList === 'Error' ? this.setState({ isError: true }) :
+    if(newList === 'Error') {
+      this.setState({ isError: true });
+    } else {
+      var baseIds = this.state.oldIds || [];
+      var prevTitles = this.state.prevTitles || [];
       this.setState({
         isError: false,
         items: newList,
         header: 'Choose from: ' + this.state.items[index].name,
-        oldId: this.state.items[index].id
+        oldIds: [...baseIds, this.state.items[index].id],
+        oldItems: [...this.state.oldItems, this.state.items],
+        prevTitles: [...prevTitles, this.state.header]
       });
+    }
+  }
+
+  goBack = () => {
+    var oldIds = [...this.state.oldIds];
+    var prevTitles = [...this.state.prevTitles];
+    var oldItems = [...this.state.oldItems];
+    oldIds.pop();
+    let prevTitle = prevTitles.pop();
+    let prevItems = oldItems.pop();
+    this.setState({
+      isError: false,
+      items: prevItems,
+      oldItems: oldItems,
+      oldIds: oldIds,
+      header: prevTitle,
+      prevTitles: prevTitles
+    });
+    getGroupList(oldIds.length ? oldIds[ oldIds.length - 1] : null).then(this.onNewItems);
   }
 
    handleChange = (event) => {
@@ -51,6 +82,7 @@ class App extends Component {
     };
 
   render() {
+    //TODO: center align text for list items
     return (
       <MuiThemeProvider>
         <div className="App">
@@ -62,22 +94,35 @@ class App extends Component {
           <p className="App-intro">
             Make a selection, add a selection, or have it choose for you!
           </p>
-          <div style={{ width: '80%', margin: 'auto' } }>
+          <div style={{ width: '60%', margin: 'auto' } }>
             <List>
               {this.state.items.map((item, index) => (
+                <div style={{flexDirection: 'row', display: 'flex', alignItems: 'center', justifyContent: 'space-around'}}
+                  key={"wrapper-div:" + index}
+                >
+                <PressableIcon
+                  key={"pIcon-" + index}
+ onClick={() => console.log("pressed")}>
+                  <RCircle
+                    key={"delete-icon-" + index}
+                  />
+                </PressableIcon>
                 <ListItem
                   primaryText={item.name}
                   rightIcon={<Forward />}
+                  style={{fontSize: 25}}
                   onClick={() => this.itemChosen(item.id, index)}
                   key={"item-" + index}
                 />
+                <div key={"emptyDiv-" + index}></div>
+              </div>
               ))}
             </List>
           <div style={{ width: '80%', margin: 'auto', flexDirection: 'row', display: 'flex', alignItems: 'center'} }>
-            {this.state.oldId ?
+            {this.state.oldIds && this.state.oldIds.length ?
             <button
               style={{height: '50%', margin: 16}}
-              onClick={this.onClick}
+              onClick={this.goBack}
             >
               back
             </button> : null}
@@ -94,9 +139,7 @@ class App extends Component {
             onClick={() => {
               if(!this.state.items || !this.state.items.length) return;
               let index = Math.floor(Math.random() * this.state.items.length);
-              console.log(index);
               let randItem = this.state.items[index];
-              console.log(randItem);
               this.itemChosen(randItem.id, index)
             }}
           >

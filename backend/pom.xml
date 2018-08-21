@@ -130,6 +130,21 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <artifactId> heroku-maven-plugin </artifactId>
+                <groupId>com.heroku.sdk</groupId>
+                <version>2.0.3</version>
+                <configuration>
+                    <appName>decision--maker</appName>
+                    <includeTarget>false</includeTarget>
+                    <includes>
+                        <include>target/decision--maker-0.0.1-SNAPSHOT.jar</include>
+                    </includes>
+                    <processTypes>
+                        <web>java -jar target/decision--maker-0.0.1-SNAPSHOT.jar</web>
+                    </processTypes>
+                </configuration>
+            </plugin>
 		</plugins>
 	</build>
 
