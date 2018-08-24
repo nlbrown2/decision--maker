@@ -15,7 +15,13 @@ export async function addListItem(name, parentId) {
 }
 
 export async function removeListItem(id) {
-  let result = await axios.delete("/delete", id);
+  let result = await axios.delete("/delete/" + id);
+  console.log(result);
+  return result.status === 200 ? result.data : 'Error';
+}
+
+export async function editListItem(newName, id, parentId) {
+  let result = await axios.post("/update", { id, name: newName, parentId });
   console.log(result);
   return result.status === 200 ? result.data : 'Error';
 }
